@@ -142,12 +142,14 @@ cat << "EOF"
   |   Sourcelume Spec Models       |       |   Sourcelume Registry (Quarkus)  |       |      Apache Atlas       |
   +--------------------------------+       +----------------------------------+       +-------------------------+
                   |                                         |                                      |
-                  |  1. Load models/sourcelume_model.json   |                                      |
+                  |  1. Load models/sourcelume/             |                                      |
+                  |     sourcelume_model.json               |                                      |
                   | --------------------------------------> |                                      |
                   |                                         |  2. Check existing / conflict sync   |
                   |                                         |  3. Register entity & enum typedefs  |
                   |                                         | -----------------------------------> |
                   |                                         |     - sourcelume_dataset (entity)    |
+                  |                                         |     - sourcelume_model (entity)      |
                   |                                         |     - sourcelume_record_status (enum)|
                   |                                         |                                      |
 EOF

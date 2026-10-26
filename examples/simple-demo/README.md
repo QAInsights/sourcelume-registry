@@ -20,7 +20,7 @@ AI models and data pipelines often train on large-scale datasets with murky orig
 ### The Story You Present
 Within minutes, an operator, data curator, or CI pipeline can:
 1. **Verify Readiness**: Confirm registry health and live connectivity to Apache Atlas.
-2. **Observe Zero-Config Type Bootstrapping**: Inspect automatic synchronization of custom entity types (`sourcelume_dataset`) and status enums (`sourcelume_record_status`) into Apache Atlas.
+2. **Observe Zero-Config Type Bootstrapping**: Inspect automatic synchronization of custom entity types (`sourcelume_dataset`, `sourcelume_model`) and status enums (`sourcelume_record_status`) into Apache Atlas.
 3. **Execute Pre-Flight Validation**: Test multi-stage in-memory validation (JSON Schema draft 2020-12 followed by Apache Jena SHACL) with fast structured error reporting before touching storage.
 4. **Experience the Curatable Ingestion Lifecycle**: Ingest an incomplete draft record, inspect recorded validation issues, and resubmit the corrected record with automatic in-place promotion from `INCOMPLETE` to `VALIDATED`.
 5. **Verify Immutability & Tamper Protection**: Observe how attempts to overwrite a published/validated record are rejected with `409 Conflict`.
@@ -87,7 +87,7 @@ The automated script walks through 6 verification stages:
   +-----------------------------------------------------------------------------------------------+
   |                                                                                               |
   |  [Step 1] Health Probe -------------> [Step 2] Bootstrap Typedefs                             |
-  |     • GET /q/health/ready                • Auto-sync sourcelume_dataset & enum                |
+  |     • GET /q/health/ready                • Auto-sync dataset & model types + enum             |
   |                                                                                               |
   |  [Step 3] Pre-Flight Check ---------> [Step 4] Ingest & Curation Lifecycle                    |
   |     • POST /records/validate             • POST draft (INCOMPLETE) -> Query -> POST fix       |
@@ -131,19 +131,21 @@ curl -s http://localhost:8082/q/health/ready | jq .
 
 ### Step 2: Automatic Atlas Type Bootstrapping (`/api/v1/types/typedefs`)
 - **What it does**: Queries the registry to inspect active entity and enum type definitions in Apache Atlas.
-- **What you are showing**: Zero manual Atlas configuration required. On startup, Sourcelume reads `models/sourcelume/sourcelume_model.json`, performs conflict-aware partitioned synchronization, and registers the `sourcelume_dataset` entity type and `sourcelume_record_status` enum type into Atlas.
+- **What you are showing**: Zero manual Atlas configuration required. On startup, Sourcelume reads `models/sourcelume/sourcelume_model.json`, performs conflict-aware partitioned synchronization, and registers the `sourcelume_dataset` and `sourcelume_model` entity types and the `sourcelume_record_status` enum type into Atlas.
 
 ```text
   +--------------------------------+       +----------------------------------+       +-------------------------+
   |   Sourcelume Spec Models       |       |   Sourcelume Registry (Quarkus)  |       |      Apache Atlas       |
   +--------------------------------+       +----------------------------------+       +-------------------------+
                   |                                         |                                      |
-                  |  1. Load models/sourcelume_model.json   |                                      |
+                  |  1. Load models/sourcelume/             |                                      |
+                  |     sourcelume_model.json               |                                      |
                   | --------------------------------------> |                                      |
                   |                                         |  2. Check existing / conflict sync   |
                   |                                         |  3. Register entity & enum typedefs  |
                   |                                         | -----------------------------------> |
                   |                                         |     - sourcelume_dataset (entity)    |
+                  |                                         |     - sourcelume_model (entity)      |
                   |                                         |     - sourcelume_record_status (enum)|
                   |                                         |                                      |
 ```

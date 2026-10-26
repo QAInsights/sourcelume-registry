@@ -153,10 +153,9 @@ copies and re-run the oracle.
 
 ### Offline context policy (SSRF)
 
-Documents reference the JSON-LD context by IRI; the spec currently defines
-no canonical absolute context IRI, and the spec examples use a relative path
-(`../context/0.0.1/sourcelume.jsonld`). Fetching whatever IRI an *ingested*
-document names is not acceptable:
+Documents reference the JSON-LD context by IRI; the spec fixes it as
+`https://sourcelume.apache.org/context/0.0.1/sourcelume.jsonld`. Fetching
+whatever IRI an *ingested* document names is still not acceptable:
 
 - validation would depend on network access, and
 - ingest payloads would direct the validator at arbitrary hosts (SSRF).
@@ -219,8 +218,6 @@ All other Jena transitives are category A (Apache/MIT/BSD).
 
 These are open questions for `dev@sourcelume.apache.org`, not blockers:
 
-- **Canonical absolute context IRI**: the spec should define one, so
-  documents (and the inliner's suffix matching) can reference it explicitly.
 - **SHACL normativity**: the spec prose describes RDF-level validation but
   does not yet state normatively that SHACL shapes must pass. The registry
   treats them as normative for ingest.

@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.sourcelume.registry.atlas.adapter.config.SourcelumeAtlasProperties;
 import org.apache.sourcelume.registry.common.dto.SourcelumeDatasetDto;
 import org.apache.sourcelume.registry.common.dto.SourcelumeModelDto;
 import org.apache.sourcelume.registry.core.AtlasAdapter;
@@ -59,11 +60,17 @@ public class TypeResource {
 
     private final AtlasAdapter atlasAdapter;
     private final ObjectMapper objectMapper;
+    private final String typedefsResource;
 
     @Inject
-    public TypeResource(AtlasAdapter atlasAdapter, ObjectMapper objectMapper) {
+    public TypeResource(AtlasAdapter atlasAdapter, ObjectMapper objectMapper, SourcelumeAtlasProperties properties) {
+        this(atlasAdapter, objectMapper, properties.typedefsResource());
+    }
+
+    TypeResource(AtlasAdapter atlasAdapter, ObjectMapper objectMapper, String typedefsResource) {
         this.atlasAdapter = atlasAdapter;
         this.objectMapper = objectMapper;
+        this.typedefsResource = typedefsResource;
     }
 
     /**
@@ -77,7 +84,7 @@ public class TypeResource {
             description = "The typedefs model",
             content = @Content(schema = @Schema(type = SchemaType.OBJECT)))
     public Response getTypeDefs() {
-        TypeDefinitionModel model = atlasAdapter.loadTypeDefs("models/sourcelume/sourcelume_model.json");
+        TypeDefinitionModel model = atlasAdapter.loadTypeDefs(typedefsResource);
         return Response.ok(new String(model.getRawJson(), StandardCharsets.UTF_8))
                 .build();
     }
@@ -113,7 +120,7 @@ public class TypeResource {
     }
 
     private Response entityTypeDef(String entityTypeName) throws IOException {
-        TypeDefinitionModel model = atlasAdapter.loadTypeDefs("models/sourcelume/sourcelume_model.json");
+        TypeDefinitionModel model = atlasAdapter.loadTypeDefs(typedefsResource);
         JsonNode typeDefs = objectMapper.readTree(model.getRawJson());
         JsonNode entityDef = findByName(typeDefs.path("entityDefs"), entityTypeName);
         if (entityDef == null) {

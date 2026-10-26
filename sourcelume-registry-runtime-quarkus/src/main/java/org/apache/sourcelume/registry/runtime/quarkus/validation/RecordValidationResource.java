@@ -40,13 +40,12 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  * record and reports the outcome — without touching the backend.
  *
  * <p>Producers use this to check a record before submitting it; the
- * registry itself will enforce the same chain during ingest (the ingest
- * path is the next PR). The response is a wire DTO mirroring the core
- * {@link ValidationResult} ({@code conforms} plus {@code issues} found) —
- * deliberately not the core type itself, so the HTTP contract stays
- * stable while core evolves (and so core stays free of serialization
- * concerns). The chain is fail-fast, so a non-conforming response carries
- * the issues of the first failing validator only.
+ * registry enforces the same chain during ingest. The response is a wire
+ * DTO mirroring the core {@link ValidationResult} ({@code conforms} plus
+ * {@code issues} found) — deliberately not the core type itself, so the
+ * HTTP contract stays stable while core evolves (and so core stays free of
+ * serialization concerns). The chain is fail-fast, so a non-conforming
+ * response carries the issues of the first failing validator only.
  *
  * <p>Status codes: {@code 200} for a conforming document, {@code 422} for
  * a well-formed document that fails validation. Malformed JSON (a parse

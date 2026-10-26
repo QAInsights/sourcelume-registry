@@ -36,7 +36,8 @@ class TypeResourceUnitTest {
                 new StubAtlasAdapter("{\"enumDefs\": [{\"name\": \"used_enum\"}, {\"name\": \"unused_enum\"}],"
                         + " \"entityDefs\": [{\"name\": \"sourcelume_dataset\","
                         + " \"attributeDefs\": [{\"name\": \"status\", \"typeName\": \"used_enum\"}]}]}"),
-                new ObjectMapper());
+                new ObjectMapper(),
+                "models/sourcelume/sourcelume_model.json");
 
         JsonNode body = (JsonNode) resource.getDatasetTypeDef().getEntity();
 
@@ -48,13 +49,29 @@ class TypeResourceUnitTest {
     void testGetDatasetTypeDefFailsWhenTypeIsMissing() {
         TypeResource resource = new TypeResource(
                 new StubAtlasAdapter("{\"enumDefs\": [], \"entityDefs\": [{\"name\": \"other\"}]}"),
-                new ObjectMapper());
+                new ObjectMapper(),
+                "models/sourcelume/sourcelume_model.json");
 
         assertThrows(IllegalStateException.class, resource::getDatasetTypeDef);
     }
 
+    @Test
+    void testTypeDefsAreLoadedFromTheConfiguredResource() throws Exception {
+        StubAtlasAdapter atlasAdapter =
+                new StubAtlasAdapter("{\"enumDefs\": [], \"entityDefs\": [{\"name\": \"sourcelume_dataset\"}]}");
+        TypeResource resource = new TypeResource(atlasAdapter, new ObjectMapper(), "custom/typedefs.json");
+
+        resource.getTypeDefs();
+        assertEquals("custom/typedefs.json", atlasAdapter.loadedResourcePath);
+
+        atlasAdapter.loadedResourcePath = null;
+        resource.getDatasetTypeDef();
+        assertEquals("custom/typedefs.json", atlasAdapter.loadedResourcePath);
+    }
+
     private static class StubAtlasAdapter implements AtlasAdapter {
         private final String typeDefsJson;
+        private String loadedResourcePath;
 
         StubAtlasAdapter(String typeDefsJson) {
             this.typeDefsJson = typeDefsJson;
@@ -67,6 +84,7 @@ class TypeResourceUnitTest {
 
         @Override
         public TypeDefinitionModel loadTypeDefs(String resourcePath) {
+            loadedResourcePath = resourcePath;
             return new TypeDefinitionModel(resourcePath, typeDefsJson.getBytes(StandardCharsets.UTF_8), 1);
         }
 

@@ -624,6 +624,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DatasetErrorResponse"
+        "502":
+          description: The backend answered with an error or with data the registry
+            could not read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetErrorResponse"
+        "503":
+          description: The backend is unavailable; retry later
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetErrorResponse"
   /api/v1/datasets/guid/{guid}:
     get:
       summary: Get a dataset by its backend GUID
@@ -644,6 +657,19 @@ paths:
                 $ref: "#/components/schemas/SourcelumeDatasetDto"
         "404":
           description: No dataset for this GUID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetErrorResponse"
+        "502":
+          description: The backend answered with an error or with data the registry
+            could not read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetErrorResponse"
+        "503":
+          description: The backend is unavailable; retry later
           content:
             application/json:
               schema:
@@ -669,6 +695,19 @@ paths:
                 $ref: "#/components/schemas/SourcelumeDatasetDto"
         "404":
           description: No dataset for this qualifiedName
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetErrorResponse"
+        "502":
+          description: The backend answered with an error or with data the registry
+            could not read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetErrorResponse"
+        "503":
+          description: The backend is unavailable; retry later
           content:
             application/json:
               schema:
@@ -783,6 +822,19 @@ paths:
                 $ref: "#/components/schemas/ConflictResponse"
         "415":
           description: Unsupported content type
+        "502":
+          description: The backend answered with an error or with data the registry
+            could not read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: The backend is unavailable; retry later
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /records/validate:
     post:
       summary: Validate a provenance record without storing it
@@ -846,6 +898,19 @@ paths:
                 $ref: "#/components/schemas/RecordResponse"
         "404":
           description: No record for this id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: The backend answered with an error or with data the registry
+            could not read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: The backend is unavailable; retry later
           content:
             application/json:
               schema:

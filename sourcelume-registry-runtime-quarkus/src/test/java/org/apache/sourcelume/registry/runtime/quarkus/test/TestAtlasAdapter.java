@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.sourcelume.registry.common.dto.RecordEntityDto;
 import org.apache.sourcelume.registry.common.dto.RecordStatus;
 import org.apache.sourcelume.registry.core.AtlasAdapter;
+import org.apache.sourcelume.registry.core.exception.AtlasAdapterException;
 
 @Mock
 @ApplicationScoped
@@ -36,6 +37,19 @@ public class TestAtlasAdapter implements AtlasAdapter {
 
     private final Map<StoreKey, RecordEntityDto> byQualifiedName = new ConcurrentHashMap<>();
     private final Map<String, RecordEntityDto> byGuid = new ConcurrentHashMap<>();
+
+    /** When set, every entity call throws it, as the real adapter does when a backend call fails. */
+    private volatile AtlasAdapterException failure;
+
+    public void failWith(AtlasAdapterException failure) {
+        this.failure = failure;
+    }
+
+    private void throwIfFailing() {
+        if (failure != null) {
+            throw failure;
+        }
+    }
 
     @Override
     public boolean isServerReady() {
@@ -62,6 +76,7 @@ public class TestAtlasAdapter implements AtlasAdapter {
 
     @Override
     public String createOrUpdateRecordEntity(RecordEntityDto record) {
+        throwIfFailing();
         StoreKey key = new StoreKey(record.getTypeName(), record.getQualifiedName());
         RecordEntityDto existing = byQualifiedName.get(key);
         String guid = record.getGuid() != null
@@ -75,11 +90,13 @@ public class TestAtlasAdapter implements AtlasAdapter {
 
     @Override
     public RecordEntityDto getRecordEntityByQualifiedName(String entityType, String qualifiedName) {
+        throwIfFailing();
         return byQualifiedName.get(new StoreKey(entityType, qualifiedName));
     }
 
     @Override
     public void deleteRecordEntity(String entityType, String qualifiedName) {
+        throwIfFailing();
         RecordEntityDto removed = byQualifiedName.remove(new StoreKey(entityType, qualifiedName));
         if (removed != null && removed.getGuid() != null) {
             byGuid.remove(removed.getGuid());
@@ -88,11 +105,13 @@ public class TestAtlasAdapter implements AtlasAdapter {
 
     @Override
     public RecordEntityDto getRecordEntityByGuid(String guid) {
+        throwIfFailing();
         return byGuid.get(guid);
     }
 
     @Override
     public List<RecordEntityDto> findRecordEntitiesByStatus(String entityType, RecordStatus status, int limit) {
+        throwIfFailing();
         return byQualifiedName.values().stream()
                 .filter(d -> entityType.equals(d.getTypeName()) && d.getRecordStatus() == status)
                 .limit(limit)

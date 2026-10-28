@@ -78,7 +78,8 @@ import org.slf4j.LoggerFactory;
  * <p>Status codes: {@code 201}/{@code 200} with a Location header; a
  * record that is already VALIDATED is rejected with {@code 409}; a
  * document without a usable {@code id} is {@code 400}; an unknown record
- * on GET is {@code 404}.
+ * on GET is {@code 404}; a failed backend call is {@code 503} or
+ * {@code 502} (see {@code BackendFailureMapper}).
  */
 @Path("/records")
 @Tag(name = "Records", description = "Submit provenance records and read their verdicts")
@@ -154,6 +155,14 @@ public class IngestResource {
             description = "The record is already VALIDATED, or the id is taken under a different record type",
             content = @Content(schema = @Schema(implementation = ConflictResponse.class)))
     @APIResponse(responseCode = "415", description = "Unsupported content type")
+    @APIResponse(
+            responseCode = "502",
+            description = "The backend answered with an error or with data the registry could not read",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "503",
+            description = "The backend is unavailable; retry later",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public Response submit(byte[] received) {
         String rawJsonLd = new String(received, StandardCharsets.UTF_8);
         String recordId;
@@ -228,6 +237,14 @@ public class IngestResource {
     @APIResponse(
             responseCode = "404",
             description = "No record for this id",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "502",
+            description = "The backend answered with an error or with data the registry could not read",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "503",
+            description = "The backend is unavailable; retry later",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public Response status(
             @Parameter(description = "The record's id (IRI); encode it when calling the API directly") @PathParam("id")

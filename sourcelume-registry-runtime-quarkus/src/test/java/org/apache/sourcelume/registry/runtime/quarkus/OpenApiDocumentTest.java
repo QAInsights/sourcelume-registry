@@ -259,9 +259,11 @@ class OpenApiDocumentTest {
                 .then()
                 .statusCode(200)
                 .body("info.title", equalTo("Apache Sourcelume Registry API"))
-                .body("paths.'/records'.post.responses.keySet()", hasItems("200", "201", "400", "409", "415"))
+                .body(
+                        "paths.'/records'.post.responses.keySet()",
+                        hasItems("200", "201", "400", "409", "415", "502", "503"))
                 .body("paths.'/records'.post.requestBody.content", hasKey("application/ld+json"))
-                .body("paths.'/records/{id}'.get.responses.keySet()", hasItems("200", "404"))
+                .body("paths.'/records/{id}'.get.responses.keySet()", hasItems("200", "404", "502", "503"))
                 .body("paths.'/records/validate'.post.responses.keySet()", containsInAnyOrder("200", "422"));
     }
 
@@ -272,8 +274,13 @@ class OpenApiDocumentTest {
                 .get("/q/openapi")
                 .then()
                 .statusCode(200)
-                .body("paths.'/api/v1/datasets'.get.responses.keySet()", hasItems("200", "400", "404"))
-                .body("paths.'/api/v1/datasets/guid/{guid}'.get.responses.keySet()", hasItems("200", "404"))
+                .body("paths.'/api/v1/datasets'.get.responses.keySet()", hasItems("200", "400", "404", "502", "503"))
+                .body(
+                        "paths.'/api/v1/datasets/guid/{guid}'.get.responses.keySet()",
+                        hasItems("200", "404", "502", "503"))
+                .body(
+                        "paths.'/api/v1/datasets/{qualifiedName}'.get.responses.keySet()",
+                        hasItems("200", "404", "502", "503"))
                 .body("paths.'/api/v1/types/typedefs'.get.responses", hasKey("200"));
     }
 

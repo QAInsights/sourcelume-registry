@@ -28,12 +28,15 @@ import jakarta.ws.rs.core.Response;
 import org.apache.sourcelume.registry.common.dto.RecordEntityDto;
 import org.apache.sourcelume.registry.common.dto.SourcelumeDatasetDto;
 import org.apache.sourcelume.registry.core.AtlasAdapter;
+import org.apache.sourcelume.registry.core.exception.AtlasAdapterException;
+import org.apache.sourcelume.registry.runtime.quarkus.BackendFailureMapper;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 /**
  * REST endpoint exposing read-only dataset views backed by {@link AtlasAdapter}.
@@ -77,6 +80,14 @@ public class DatasetResource {
             responseCode = "404",
             description = "No dataset for this qualifiedName",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "502",
+            description = "The backend answered with an error or with data the registry could not read",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "503",
+            description = "The backend is unavailable; retry later",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public Response getDatasetByQuery(
             @Parameter(description = "The dataset's qualified name", required = true) @QueryParam("qualifiedName")
                     String qualifiedName) {
@@ -107,6 +118,14 @@ public class DatasetResource {
     @APIResponse(
             responseCode = "404",
             description = "No dataset for this GUID",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "502",
+            description = "The backend answered with an error or with data the registry could not read",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "503",
+            description = "The backend is unavailable; retry later",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public Response getDatasetByGuid(@PathParam("guid") String guid) {
         if (guid == null || guid.isBlank()) {
@@ -139,6 +158,14 @@ public class DatasetResource {
             responseCode = "404",
             description = "No dataset for this qualifiedName",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "502",
+            description = "The backend answered with an error or with data the registry could not read",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "503",
+            description = "The backend is unavailable; retry later",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public Response getDatasetByPath(@PathParam("qualifiedName") String qualifiedName) {
         if (qualifiedName == null || qualifiedName.isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -163,6 +190,12 @@ public class DatasetResource {
         RecordEntityDto stored =
                 atlasAdapter.getRecordEntityByQualifiedName(SourcelumeDatasetDto.TYPE_NAME, qualifiedName);
         return stored instanceof SourcelumeDatasetDto ? (SourcelumeDatasetDto) stored : null;
+    }
+
+    /** Backend failures get this API's own error body, not the ingest API's. */
+    @ServerExceptionMapper
+    public Response mapBackendFailure(AtlasAdapterException e) {
+        return BackendFailureMapper.respond(e, ErrorResponse::new);
     }
 
     /** Wire DTO for error responses; named apart from the ingest API's ErrorResponse in the OpenAPI document. */
